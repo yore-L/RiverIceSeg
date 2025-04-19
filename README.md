@@ -57,9 +57,9 @@ airs
 *Windows系统也可以，只是开启多线程较为麻烦*   
 **下面在Ubuntu 22.04进行安装测试**，使用 Linux Terminal 打开文件夹 airs 并创建 python 环境：
 ```
-conda create -n airs python=3.8
-conda activate airs
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+conda create -n airs python=3.8  
+conda activate airs  
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118  
 pip install -r RiverIceSeg/requirements.txt
 ```
 
@@ -71,19 +71,19 @@ pip install -r RiverIceSeg/requirements.txt
 [Vaihingen and Potsdam](https://www.isprs.org/education/benchmarks/UrbanSemLab/default.aspx)、[UAViD](https://uavid.nl/)、[LoveDA](https://codalab.lisn.upsaclay.fr/competitions/421)、[OpenEarthMap](https://open-earth-map.org/)可参考[此处](https://github.com/WangLibo1995/GeoSeg?tab=readme-ov-file),这里只介绍自己的数据集。
 
 ```
-python tools/mask_convert.py --mask-dir data/Train/river_ice/masks_png --output-mask-dir data/Train/river_ice/masks_png_convert
+python tools/mask_convert.py --mask-dir data/Train/river_ice/masks_png --output-mask-dir data/Train/river_ice/masks_png_convert  
 python tools/mask_convert.py --mask-dir data/Val/river_ice/masks_png --output-mask-dir data/Val/river_ice/masks_png_convert
 ```
 
 ## Training 训练
-"-c" 表示 config 的路径，使用不同的 config 来训练不同的模型。
+"-c" 表示 config 的路径，使用不同的 config 来训练不同的模型。  
 ```
 python ./train_supervision.py -c ./config/river_ice/unetformer.py
 ```
 
 ## Testing  测试
 
-"-c" 表示配置的路径，使用不同的配置来测试不同的模型。  
+"-c" 表示配置的路径，使用不同的配置来测试不同的模型。   
   
 "-o" 表示输出路径   
   
