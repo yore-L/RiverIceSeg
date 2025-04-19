@@ -17,6 +17,7 @@
 
 ## 支持的网络
 *理论上与UNetformer相同*
+
 * Vision TransFormer  
    * [UNetFormer](https://www.sciencedirect.com/science/article/abs/pii/S0924271622001654?via%3Dihub)  
    * [DC-Swin](https://ieeexplore.ieee.org/abstract/document/9681903)  
@@ -59,7 +60,7 @@ airs
 conda create -n airs python=3.8
 conda activate airs
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install -r GeoSeg/requirements.txt
+pip install -r RiverIceSeg/requirements.txt
 ```
 
 ## 预训练权重
@@ -83,10 +84,13 @@ python ./train_supervision.py -c ./config/river_ice/unetformer.py
 ## Testing  测试
 
 "-c" 表示配置的路径，使用不同的配置来测试不同的模型。  
+  
 "-o" 表示输出路径   
+  
 "-t" 表示测试时间增强 （TTA），可以是 [None， 'lr'， 'd4']，默认为 None，'lr' 是翻转 TTA，'d4' 是多尺度 TTA  
+  
 "--rgb" 表示是否以 RGB 格式输出掩码  
-
+  
 ```
 python ./test.py -c ./config/unetformer.py -o fig_results/output_test -t 'd4' --rgb
 ```
@@ -96,7 +100,7 @@ python ./test.py -c ./config/unetformer.py -o fig_results/output_test -t 'd4' --
 **由于训练阶段的一些随机操作，复现结果（运行一次）与论文中报告的略有不同。**  
 
 ## 致谢
-我们希望借助 GeoSeg 提供的统一基准来激励研究人员开发自己的分割网络来服务于日益增长的遥感研究。非常感谢以下项目的贡献。
+我们希望借助 GeoSeg 提供的统一基准来激励研究人员开发自己的分割网络来服务于日益增长的遥感研究。非常感谢以下项目的贡献。  
 * [GeoSeg](https://github.com/WangLibo1995/GeoSeg?tab=readme-ov-file)  
 * [Kansformers](https://github.com/akaashdash/kansformers)  
 * [pytorch lightning](https://lightning.ai/)  
