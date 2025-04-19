@@ -1,0 +1,16 @@
+torch
+torchvision
+timm
+lightning
+pytorch-lightning
+albumentations
+ttach
+numpy
+tqdm
+opencv-python
+scipy
+matplotlib
+einops
+addict
+ftfy
+regex
