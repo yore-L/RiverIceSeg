@@ -6,13 +6,16 @@ from torch import Tensor
 from .soft_ce import SoftCrossEntropyLoss
 from .joint_loss import JointLoss
 from .dice import DiceLoss
+from .oriConnect import ConnectivityLoss
 
 
 class EdgeLoss(nn.Module):
     def __init__(self, ignore_index=255, edge_factor=1.0):
         super(EdgeLoss, self).__init__()
         self.main_loss = JointLoss(SoftCrossEntropyLoss(smooth_factor=0.05, ignore_index=ignore_index),
-                                   DiceLoss(smooth=0.05, ignore_index=ignore_index), 1.0, 1.0)
+                                   DiceLoss(smooth=0.05, ignore_index=ignore_index),
+                                   ConnectivityLoss(),
+                                   1.0, 1.0, 0.5)
         self.edge_factor = edge_factor
 
     def get_boundary(self, x):
@@ -72,7 +75,10 @@ class UnetFormerLoss(nn.Module):
     def __init__(self, ignore_index=255):
         super().__init__()
         self.main_loss = JointLoss(SoftCrossEntropyLoss(smooth_factor=0.05, ignore_index=ignore_index),
-                                   DiceLoss(smooth=0.05, ignore_index=ignore_index), 1.0, 1.0)
+                                   DiceLoss(smooth=0.05, ignore_index=ignore_index),
+                                   ConnectivityLoss(),
+                                   1.0, 1.0, 0.5)
+        # self.main_loss = EdgeLoss()
         self.aux_loss = SoftCrossEntropyLoss(smooth_factor=0.05, ignore_index=ignore_index)
 
     def forward(self, logits, labels):

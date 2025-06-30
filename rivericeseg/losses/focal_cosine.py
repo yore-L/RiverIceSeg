@@ -1,8 +1,9 @@
-import torch
+from typing import Optional
 from torch import nn, Tensor
 import torch.nn.functional as F
+import torch
 
-_all__ = ["FocalCosineLoss","FocalLoss"]
+__all__ = ["FocalCosineLoss"]
 
 
 class FocalCosineLoss(nn.Module):
@@ -36,31 +37,3 @@ class FocalCosineLoss(nn.Module):
             focal_loss = torch.mean(focal_loss)
 
         return cosine_loss + self.xent * focal_loss
-
-class FocalLoss(nn.Module):
-    def __init__(self, gamma: float = 2.0, alpha: float = 0.25, reduction: str = "mean", eps: float = 1e-6, ignore_index: int = None):
-        super().__init__()
-        self.gamma = gamma
-        self.alpha = alpha
-        self.reduction = reduction
-        self.eps = eps
-        self.ignore_index = ignore_index
-
-    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-        t = targets
-        if t.dim() == logits.dim() - 1:
-            t = t.unsqueeze(1)
-        t = t.type_as(logits)
-        ce = F.binary_cross_entropy_with_logits(logits, t, reduction="none")
-        p = torch.sigmoid(logits)
-        pt = p * t + (1 - p) * (1 - t)
-        focal_term = (1.0 - pt).pow(self.gamma)
-        loss = focal_term * ce
-        if self.alpha is not None:
-            loss = loss * (self.alpha * t + (1 - self.alpha) * (1 - t))
-        if self.ignore_index is not None:
-            mask = (t != self.ignore_index).float()
-            loss = loss * mask
-            if self.reduction == "mean":
-                return loss.sum() / mask.sum().clamp_min(self.eps)
-        return loss.mean() if self.reduction == "mean" else loss.sum()

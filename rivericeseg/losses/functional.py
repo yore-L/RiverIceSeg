@@ -246,30 +246,32 @@ def label_smoothed_nll_loss(
     :return:
     """
     if target.dim() == lprobs.dim() - 1:
-        target = target.unsqueeze(-1)
+        target = target.unsqueeze(dim)
 
     if ignore_index is not None:
-        # Create a mask to filter out the ignore_index
-        mask = target != ignore_index
-        valid_indices = mask.nonzero(as_tuple=True)
-        lprobs_valid = lprobs[valid_indices]
-        target_valid = target[valid_indices]
+        pad_mask = target.eq(ignore_index)
+        target = target.masked_fill(pad_mask, 0)
+        nll_loss = -lprobs.gather(dim=dim, index=target)
+        smooth_loss = -lprobs.sum(dim=dim, keepdim=True)
 
-        if lprobs_valid.numel() == 0:
-            return torch.tensor(0.0, device=lprobs.device)
-
-        nll_loss = -lprobs_valid.gather(dim=-1, index=target_valid)
-        smooth_loss = -lprobs_valid.sum(dim=-1, keepdim=True)
+        # nll_loss.masked_fill_(pad_mask, 0.0)
+        # smooth_loss.masked_fill_(pad_mask, 0.0)
+        nll_loss = nll_loss.masked_fill(pad_mask, 0.0)
+        smooth_loss = smooth_loss.masked_fill(pad_mask, 0.0)
     else:
-        nll_loss = -lprobs.gather(dim=-1, index=target)
-        smooth_loss = -lprobs.sum(dim=-1, keepdim=True)
+        nll_loss = -lprobs.gather(dim=dim, index=target)
+        smooth_loss = -lprobs.sum(dim=dim, keepdim=True)
 
-    eps_i = epsilon / (lprobs.size(-1) - 1)
-    loss = (1.0 - epsilon - eps_i) * nll_loss + eps_i * smooth_loss
+        nll_loss = nll_loss.squeeze(dim)
+        smooth_loss = smooth_loss.squeeze(dim)
 
     if reduction == "sum":
-        loss = loss.sum()
-    elif reduction == "mean":
-        loss = loss.mean()
+        nll_loss = nll_loss.sum()
+        smooth_loss = smooth_loss.sum()
+    if reduction == "mean":
+        nll_loss = nll_loss.mean()
+        smooth_loss = smooth_loss.mean()
 
+    eps_i = epsilon / lprobs.size(dim)
+    loss = (1.0 - epsilon) * nll_loss + eps_i * smooth_loss
     return loss
