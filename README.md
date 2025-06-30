@@ -1,6 +1,6 @@
 ## Version 1.0(stable)
 ### Tips
-KANConv是基于Kolmogorov–Arnold网络（[KAN](Kolmogorov–Arnold Networks)](https://arxiv.org/abs/2404.19756)）创新设计的卷积模块，其核心思想是将KAN的非线性函数逼近特性与卷积操作的局部特征提取能力相结合，在保留传统卷积空间感知优势的同时，通过KAN的全局非线性建模能力增强特征的表征效果。本文基于[UNetformer](https://github.com/WangLibo1995/GeoSeg?tab=readme-ov-file)（Wang等，2023），针对其GLTB模块的局部分支结构，将原有的传统卷积层替换为该KANConv模块，并引入KAN网络的理论框架，重点面向河冰提取任务开展优化研究。
+KANConv是基于Kolmogorov–Arnold网络（[KAN(Kolmogorov–Arnold Networks)](https://arxiv.org/abs/2404.19756)）创新设计的卷积模块，其核心思想是将KAN的非线性函数逼近特性与卷积操作的局部特征提取能力相结合，在保留传统卷积空间感知优势的同时，通过KAN的全局非线性建模能力增强特征的表征效果。本文基于[UNetformer](https://github.com/WangLibo1995/GeoSeg?tab=readme-ov-file)（Wang等，2023），针对其GLTB模块的局部分支结构，将原有的传统卷积层替换为该KANConv模块，并引入KAN网络的理论框架，重点面向河冰提取任务开展优化研究。
 
 ## 介绍
 **RivericeSeg**是一个基于 **PyTorch**、 [pytorch lightning](https://lightning.ai/)和[timm](https://github.com/huggingface/pytorch-image-models)的开源语义分割工具箱，主要用于遥感图像分割。
