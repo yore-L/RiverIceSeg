@@ -10,6 +10,7 @@ import numpy as np
 import argparse
 from pathlib import Path
 from tool.metric import Evaluator
+from tool.plotter import Plotter, RealtimePlotCallback
 from pytorch_lightning.loggers import CSVLogger
 import random
 
@@ -46,6 +47,8 @@ class Train(pl.LightningModule):
         self.loss = config.loss
         self.metric_train = Evaluator(num_class=config.num_classes)
         self.metric_val = Evaluator(num_class=config.num_classes)
+        self.total_loss = 0.0
+        self.num_batches = 0
 
     def forward(self, x):
         # 仅在预测/推理中使用网络
@@ -66,10 +69,10 @@ class Train(pl.LightningModule):
                 # 将形状从[N,2,H,W]变为[N,1,H,W]
                 loss_pred = main_pred[:, 1:2, :, :]
                 aux_loss_pred = aux_pred[:, 1:2, :, :] if aux_pred.shape[1] == 2 else aux_pred
-                loss = self.loss(loss_pred, mask, aux_loss_pred)
-            else:
-                # 直接使用预测结果
-                loss = self.loss(main_pred, mask, aux_pred)
+                loss = self.loss((loss_pred, aux_loss_pred), mask)
+            # else:
+            #     # 直接使用预测结果
+            #     loss = self.loss(main_pred, mask, aux_pred)
         else:
             # 处理没有辅助输出的情况
             if prediction.shape[1] == 2:  # 二分类情形，选择第二个通道（前景）
@@ -77,7 +80,7 @@ class Train(pl.LightningModule):
                 loss = self.loss(loss_pred, mask)
             else:
                 loss = self.loss(prediction, mask)
-
+            # print(loss)
         # 后处理用于指标计算的预测结果
         if self.config.use_aux_loss and isinstance(prediction, tuple):
             pre_mask = torch.sigmoid(prediction[0])
@@ -95,9 +98,16 @@ class Train(pl.LightningModule):
         for i in range(mask.shape[0]):
             self.metric_train.add_batch(mask[i].cpu().numpy(), pre_mask[i].cpu().numpy())
 
+        # print('loss:',loss.item())
+        self.total_loss += loss.item()
+        self.num_batches += 1
+
         return {"loss": loss}
 
     def on_train_epoch_end(self):
+        # 计算损失
+        avg_loss = self.total_loss / self.num_batches if self.num_batches > 0 else 0.0
+        print(f'Average train Loss: {avg_loss}')
         if 'river_ice' in self.config.log_name:
             mIoU = np.nanmean(self.metric_train.Intersection_over_Union()[:-1])
             F1 = np.nanmean(self.metric_train.F1()[:-1])
@@ -120,10 +130,10 @@ class Train(pl.LightningModule):
         iou_value = {}
         for class_name, iou in zip(self.config.classes, iou_per_class):
             iou_value[class_name] = iou
-        print(iou_value)
+        # print(iou_value)
 
         self.metric_train.reset()
-        log_dict = {'train_river_ice': iou_per_class[1], 'train_mIoU': mIoU, 'train_F1': F1, 'train_Dice': Dice, 'train_Recall': Recall, 'train_OA': OA,}
+        log_dict = {'train_river_ice': iou_per_class[1], 'train_mIoU': mIoU, 'train_F1': F1, 'train_Dice': Dice, 'train_Recall': Recall, 'train_OA': OA, 'train_loss': avg_loss}
         self.log_dict(log_dict, prog_bar=True)
 
     def validation_step(self, batch, batch_idx):
@@ -137,7 +147,7 @@ class Train(pl.LightningModule):
             if main_pred.shape[1] == 2:
                 loss_pred = main_pred[:, 1:2, :, :]
                 aux_loss_pred = aux_pred[:, 1:2, :, :] if aux_pred.shape[1] == 2 else aux_pred
-                loss_val = self.loss(loss_pred, mask, aux_loss_pred)
+                loss_val = self.loss((loss_pred, aux_loss_pred), mask)
             else:
                 loss_val = self.loss(main_pred, mask, aux_pred)
         else:
@@ -169,10 +179,16 @@ class Train(pl.LightningModule):
             # if i == 0 and batch_idx == 0:
             #     print(f"预测形状: {pred.shape}, 标签形状: {gt.shape}")
             self.metric_val.add_batch(gt, pred)
+            # print('val_loss:',loss_val.item())
+            self.total_loss += loss_val.item()
+            self.num_batches += 1
 
         return {'val_loss': loss_val}
 
     def on_validation_epoch_end(self):
+        # 计算损失
+        avg_loss = self.total_loss / self.num_batches if self.num_batches > 0 else 0.0
+        print(f'Average Val Loss: {avg_loss}')
         if 'river_ice' in self.config.log_name:
             mIoU = np.nanmean(self.metric_val.Intersection_over_Union()[:-1])
             F1 = np.nanmean(self.metric_val.F1()[:-1])
@@ -196,10 +212,10 @@ class Train(pl.LightningModule):
         iou_value = {}
         for class_name, iou in zip(self.config.classes, iou_per_class):
             iou_value[class_name] = iou
-        print(iou_value)
+        # print(iou_value)
 
         self.metric_val.reset()
-        log_dict = {'val_river_ice': iou_per_class[1], 'val_mIoU': mIoU, 'val_F1': F1, 'val_Dice': Dice, 'val_Recall': Recall, 'val_OA': OA, }
+        log_dict = {'val_river_ice': iou_per_class[1], 'val_mIoU': mIoU, 'val_F1': F1, 'val_Dice': Dice, 'val_Recall': Recall, 'val_OA': OA, 'val_loss': avg_loss}
         self.log_dict(log_dict, prog_bar=True)
 
     def configure_optimizers(self):
@@ -231,7 +247,6 @@ class Train(pl.LightningModule):
 def main():
     import multiprocessing as mp
     ctx = mp.get_context('spawn')
-    # mpp.Pool(processes=ctx.cpu_count()).map(img_writer, results)
     args = get_args()
     config = py2cfg(args.config_path)
     seed_everything(42)
@@ -248,7 +263,8 @@ def main():
 
     trainer = pl.Trainer(devices=config.gpus, max_epochs=config.max_epoch, accelerator='auto',
                          check_val_every_n_epoch=config.check_val_every_n_epoch,
-                         callbacks=[checkpoint_callback], strategy='auto', logger=logger)
+                         callbacks=checkpoint_callback, strategy='auto', logger=logger)
+
 
     trainer.fit(model=model, ckpt_path=config.resume_ckpt_path)
 
