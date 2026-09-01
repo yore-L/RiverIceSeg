@@ -99,6 +99,10 @@ python ./test.py -c ./config/unetformer.py -o fig_results/output_test -t 'd4' --
 
 **由于训练阶段的一些随机操作，复现结果（运行一次）与论文中报告的略有不同。**  
 
+## Citation
+如果您在研究中使用本项目，请考虑引用：
+A KAN–UNetFormer framework for river ice extent extraction from landsat satellite imagery on the Tibetan Plateau(https://www.sciencedirect.com/science/article/abs/pii/S0165232X2600279X?via%3Dihub)
+
 ## 致谢
 我们希望借助 GeoSeg 提供的统一基准来激励研究人员开发自己的分割网络来服务于日益增长的遥感研究。非常感谢以下项目的贡献。  
 * [GeoSeg](https://github.com/WangLibo1995/GeoSeg?tab=readme-ov-file)  
