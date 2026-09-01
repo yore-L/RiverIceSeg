@@ -22,6 +22,8 @@ KANConv是基于Kolmogorov–Arnold网络（[KAN(Kolmogorov–Arnold Networks)](
    * [UNetFormer](https://www.sciencedirect.com/science/article/abs/pii/S0924271622001654?via%3Dihub)  
    * [DC-Swin](https://ieeexplore.ieee.org/abstract/document/9681903)  
    * [Swin-Transformer]()
+   * [SegFormer]()
+   * [KAN-UNetFormer]()
 
 * CNN
     * [UNet]()  
@@ -75,13 +77,13 @@ python tools/mask_convert.py --mask-dir data/Train/river_ice/masks_png --output-
 python tools/mask_convert.py --mask-dir data/Val/river_ice/masks_png --output-mask-dir data/Val/river_ice/masks_png_convert
 ```
 
-## Training 训练
+## 训练
 "-c" 表示 config 的路径，使用不同的 config 来训练不同的模型。  
 ```
 python ./train_supervision.py -c ./config/river_ice/unetformer.py
 ```
 
-## Testing  测试
+## 测试
 
 "-c" 表示配置的路径，使用不同的配置来测试不同的模型。   
   
@@ -99,7 +101,7 @@ python ./test.py -c ./config/unetformer.py -o fig_results/output_test -t 'd4' --
 
 **由于训练阶段的一些随机操作，复现结果（运行一次）与论文中报告的略有不同。**  
 
-## Citation
+## 引用
 如果您在研究中使用本项目，请考虑引用：  
 [A KAN–UNetFormer framework for river ice extent extraction from landsat satellite imagery on the Tibetan Plateau](https://www.sciencedirect.com/science/article/abs/pii/S0165232X2600279X?via%3Dihub)
 
